@@ -1,0 +1,588 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--surface-0);color:var(--text-primary)}
+.app{max-width:700px;margin:0 auto;padding:0 0 80px}
+.nav{display:flex;gap:4px;padding:12px 0 16px;border-bottom:0.5px solid var(--border);margin-bottom:16px;overflow-x:auto}
+.nav button{flex:none;padding:7px 14px;border-radius:var(--radius);border:0.5px solid transparent;background:transparent;color:var(--text-secondary);font-size:13px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.nav button.active{background:var(--surface-2);border-color:var(--border);color:var(--text-primary);font-weight:500}
+.nav button:hover:not(.active){background:var(--surface-1)}
+.page{display:none}
+.page.active{display:block}
+.card{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:16px}
+.card+.card{margin-top:12px}
+h2{font-size:16px;font-weight:500;margin-bottom:12px;color:var(--text-primary)}
+h3{font-size:14px;font-weight:500;margin-bottom:8px;color:var(--text-primary)}
+label{font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px}
+select,input{width:100%;padding:8px 10px;border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-1);color:var(--text-primary);font-size:14px;font-family:var(--font-sans)}
+select:focus,input:focus{outline:none;border-color:var(--border-accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.btn{padding:8px 16px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:var(--surface-1);color:var(--text-primary);font-size:13px;cursor:pointer;font-family:var(--font-sans)}
+.btn:hover{background:var(--surface-2);border-color:var(--border-stronger)}
+.btn-primary{background:var(--fill-accent);border-color:var(--fill-accent);color:#fff}
+.btn-primary:hover{background:var(--fill-accent-hover);border-color:var(--fill-accent-hover)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:12px;font-weight:500}
+.tag-blue{background:var(--bg-accent);color:var(--text-accent)}
+.tag-green{background:var(--bg-success);color:var(--text-success)}
+.tag-amber{background:var(--bg-warning);color:var(--text-warning)}
+.lift-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.lift-row:last-child{border-bottom:none}
+.lift-name{font-size:14px;font-weight:500;flex:1}
+.lift-meta{font-size:12px;color:var(--text-muted)}
+.metric-card{background:var(--surface-1);border-radius:var(--radius);padding:12px;text-align:center}
+.metric-val{font-size:24px;font-weight:500;color:var(--text-primary);line-height:1}
+.metric-lbl{font-size:12px;color:var(--text-muted);margin-top:4px}
+.food-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:0.5px solid var(--border)}
+.food-row:last-child{border-bottom:none}
+.food-name{font-size:14px;flex:1}
+.macro-pill{font-size:11px;padding:2px 6px;border-radius:10px;font-weight:500}
+.macro-p{background:#e6f1fb;color:#185fa5}
+.macro-c{background:#eaf3de;color:#3b6d11}
+.macro-f{background:#faeeda;color:#854f0b}
+.progress-bar-wrap{background:var(--surface-0);border-radius:4px;height:8px;overflow:hidden;margin-top:4px}
+.progress-bar{height:100%;border-radius:4px;transition:width .3s}
+.set-log{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.set-badge{width:24px;height:24px;border-radius:50%;background:var(--bg-accent);color:var(--text-accent);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex:none}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.empty{text-align:center;padding:24px 0;color:var(--text-muted);font-size:13px}
+.pr-badge{background:#fbeaf0;color:#993556;font-size:10px;padding:2px 5px;border-radius:4px;font-weight:600;margin-left:4px}
+.workout-chip{padding:6px 12px;border-radius:20px;border:0.5px solid var(--border-strong);background:var(--surface-1);color:var(--text-primary);font-size:13px;cursor:pointer;white-space:nowrap}
+.workout-chip.selected{background:var(--bg-accent);border-color:var(--border-accent);color:var(--text-accent);font-weight:500}
+.rec-card{background:var(--surface-1);border-radius:var(--radius);padding:12px;margin-bottom:8px;border-left:3px solid #378add}
+.rec-card h3{font-size:13px;margin-bottom:4px}
+.rec-card p{font-size:12px;color:var(--text-muted);line-height:1.5}
+.flex-row{display:flex;gap:8px;align-items:center}
+.chart-wrap{position:relative;width:100%;height:180px;margin-top:8px}
+.stat-row{display:flex;gap:8px;margin-bottom:12px}
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Fitness tracker: log workouts, track lifts, log food, and view progress</h2>
+
+<div class="app">
+<div class="nav" id="nav">
+  <button class="active" onclick="showPage('workout')" data-page="workout"><i class="ti ti-barbell" aria-hidden="true"></i> Workout</button>
+  <button onclick="showPage('food')" data-page="food"><i class="ti ti-salad" aria-hidden="true"></i> Nutrition</button>
+  <button onclick="showPage('progress')" data-page="progress"><i class="ti ti-chart-line" aria-hidden="true"></i> Progress</button>
+  <button onclick="showPage('recommend')" data-page="recommend"><i class="ti ti-stars" aria-hidden="true"></i> Recommend</button>
+</div>
+
+<!-- WORKOUT PAGE -->
+<div id="page-workout" class="page active">
+  <div class="card">
+    <h2>Today's workout</h2>
+    <div style="margin-bottom:12px">
+      <label>Workout type</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px" id="workout-type-chips">
+        <div class="workout-chip selected" onclick="selectType(this,'Push')">Push</div>
+        <div class="workout-chip" onclick="selectType(this,'Pull')">Pull</div>
+        <div class="workout-chip" onclick="selectType(this,'Legs')">Legs</div>
+        <div class="workout-chip" onclick="selectType(this,'Upper')">Upper</div>
+        <div class="workout-chip" onclick="selectType(this,'Lower')">Lower</div>
+        <div class="workout-chip" onclick="selectType(this,'Full Body')">Full body</div>
+        <div class="workout-chip" onclick="selectType(this,'Cardio')">Cardio</div>
+        <div class="workout-chip" onclick="selectType(this,'Arms')">Arms</div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-bottom:10px">
+      <div>
+        <label>Exercise</label>
+        <select id="lift-select" onchange="onLiftChange()">
+          <optgroup label="Chest"><option>Bench press</option><option>Incline bench press</option><option>Cable fly</option><option>Dips</option></optgroup>
+          <optgroup label="Shoulders"><option>Overhead press</option><option>Lateral raises</option><option>Front raises</option></optgroup>
+          <optgroup label="Triceps"><option>Tricep pushdown</option><option>Skull crushers</option><option>Overhead tricep ext.</option></optgroup>
+          <optgroup label="Back"><option>Deadlift</option><option>Pull-ups</option><option>Barbell row</option><option>Lat pulldown</option><option>Seated cable row</option></optgroup>
+          <optgroup label="Biceps"><option>Barbell curl</option><option>Dumbbell curl</option><option>Hammer curl</option></optgroup>
+          <optgroup label="Legs"><option>Squat</option><option>Romanian deadlift</option><option>Leg press</option><option>Leg curl</option><option>Leg extension</option><option>Hip thrust</option><option>Calf raises</option></optgroup>
+        </select>
+      </div>
+      <div>
+        <label>Unit</label>
+        <select id="unit-select"><option>kg</option><option>lbs</option></select>
+      </div>
+    </div>
+    <div class="grid3" style="margin-bottom:10px">
+      <div><label>Weight</label><input type="number" id="weight-in" placeholder="e.g. 80" min="0"/></div>
+      <div><label>Reps</label><input type="number" id="reps-in" placeholder="e.g. 8" min="1"/></div>
+      <div><label>Sets</label><input type="number" id="sets-in" placeholder="e.g. 3" min="1" value="1"/></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="logSet()" style="flex:1">Log set</button>
+      <button class="btn" onclick="clearToday()">Clear</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="section-header">
+      <h2 style="margin:0">Today's sets</h2>
+      <span id="today-count" style="font-size:12px;color:var(--text-muted)">0 sets</span>
+    </div>
+    <div id="today-sets"><div class="empty"><i class="ti ti-dumbbell" style="font-size:24px;display:block;margin-bottom:6px" aria-hidden="true"></i>No sets logged yet</div></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2>Personal records</h2>
+    <div id="pr-list"><div class="empty">Log lifts to see your PRs</div></div>
+  </div>
+</div>
+
+<!-- FOOD PAGE -->
+<div id="page-food" class="page">
+  <div class="card">
+    <div class="grid3" style="margin-bottom:16px">
+      <div class="metric-card"><div class="metric-val" id="cal-total">0</div><div class="metric-lbl">Calories</div></div>
+      <div class="metric-card"><div class="metric-val" id="prot-total" style="color:#185fa5">0g</div><div class="metric-lbl">Protein</div></div>
+      <div class="metric-card"><div class="metric-val" id="carb-total" style="color:#3b6d11">0g</div><div class="metric-lbl">Carbs</div></div>
+    </div>
+    <div style="margin-bottom:4px;display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted)">
+      <span>Daily calorie goal</span>
+      <span id="cal-pct">0%</span>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="cal-bar" style="width:0%;background:#2a78d6"></div></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2>Goal</h2>
+    <div class="grid3" style="margin-bottom:10px">
+      <div>
+        <label>Phase</label>
+        <select id="goal-phase" onchange="updateGoal()">
+          <option value="maintain">Maintain</option>
+          <option value="bulk">Bulk</option>
+          <option value="cut">Cut</option>
+        </select>
+      </div>
+      <div>
+        <label>Body weight</label>
+        <input type="number" id="bw-input" placeholder="kg" value="75" oninput="updateGoal()"/>
+      </div>
+      <div>
+        <label>Cal goal</label>
+        <input type="number" id="cal-goal-input" placeholder="kcal" value="2500" oninput="updateGoal()"/>
+      </div>
+    </div>
+    <div id="goal-tip" style="font-size:12px;color:var(--text-muted);background:var(--surface-0);padding:8px 10px;border-radius:var(--radius)"></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2>Log food</h2>
+    <div style="position:relative;margin-bottom:10px">
+      <input type="text" id="food-search" placeholder="Search foods (e.g. chicken breast, rice, egg...)" oninput="searchFood(this.value)"/>
+      <div id="food-dropdown" style="display:none;position:absolute;top:38px;left:0;right:0;background:var(--surface-2);border:0.5px solid var(--border-strong);border-radius:var(--radius);z-index:10;max-height:200px;overflow-y:auto"></div>
+    </div>
+    <div id="selected-food-preview" style="display:none" class="card" style="margin-bottom:10px">
+      <div id="sel-food-name" style="font-weight:500;margin-bottom:6px"></div>
+      <div class="grid3" style="margin-bottom:8px">
+        <div><label>Amount (g)</label><input type="number" id="food-amount" value="100" oninput="updatePreview()"/></div>
+        <div><label>Meal</label><select id="meal-select"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option></select></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" style="width:100%" onclick="addFood()">Add</button></div>
+      </div>
+      <div style="display:flex;gap:8px;font-size:12px" id="food-preview-macros"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2>Food log</h2>
+    <div id="food-log"><div class="empty">No food logged today</div></div>
+  </div>
+</div>
+
+<!-- PROGRESS PAGE -->
+<div id="page-progress" class="page">
+  <div class="card">
+    <div class="section-header">
+      <h2 style="margin:0">Lift history</h2>
+    </div>
+    <div style="margin-bottom:12px">
+      <label>Exercise</label>
+      <select id="progress-lift-select" onchange="renderProgressChart()"></select>
+    </div>
+    <div class="grid3" style="margin-bottom:12px">
+      <div class="metric-card"><div class="metric-val" id="prog-pr">—</div><div class="metric-lbl">Best weight</div></div>
+      <div class="metric-card"><div class="metric-val" id="prog-sessions">—</div><div class="metric-lbl">Sessions</div></div>
+      <div class="metric-card"><div class="metric-val" id="prog-trend" style="color:#1baf7a">—</div><div class="metric-lbl">Trend</div></div>
+    </div>
+    <div class="chart-wrap"><canvas id="liftChart" role="img" aria-label="Lift progression over time"></canvas></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2>Weekly volume</h2>
+    <div class="chart-wrap"><canvas id="volChart" role="img" aria-label="Weekly volume chart"></canvas></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2>Macro breakdown</h2>
+    <div style="position:relative;width:200px;height:200px;margin:0 auto"><canvas id="macroChart" role="img" aria-label="Macro breakdown donut chart"></canvas></div>
+    <div style="display:flex;justify-content:center;gap:16px;margin-top:10px;font-size:12px;color:var(--text-secondary)">
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#2a78d6;display:inline-block"></span>Protein</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#1baf7a;display:inline-block"></span>Carbs</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#eda100;display:inline-block"></span>Fat</span>
+    </div>
+  </div>
+</div>
+
+<!-- RECOMMEND PAGE -->
+<div id="page-recommend" class="page">
+  <div class="card">
+    <h2>Your training goal</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="goal-chips">
+      <div class="workout-chip selected" onclick="selectGoal(this,'strength')">Strength</div>
+      <div class="workout-chip" onclick="selectGoal(this,'hypertrophy')">Muscle mass</div>
+      <div class="workout-chip" onclick="selectGoal(this,'fat-loss')">Fat loss</div>
+      <div class="workout-chip" onclick="selectGoal(this,'endurance')">Endurance</div>
+      <div class="workout-chip" onclick="selectGoal(this,'athletic')">Athletic</div>
+    </div>
+    <div class="grid2" style="margin-bottom:10px">
+      <div>
+        <label>Training days/week</label>
+        <select id="days-week"><option>3</option><option selected>4</option><option>5</option><option>6</option></select>
+      </div>
+      <div>
+        <label>Experience level</label>
+        <select id="exp-level"><option>Beginner</option><option selected>Intermediate</option><option>Advanced</option></select>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="getRecommendations()" style="width:100%">Get recommendations ↗</button>
+  </div>
+
+  <div id="rec-loading" style="display:none;text-align:center;padding:24px 0;color:var(--text-muted);font-size:13px">
+    <i class="ti ti-loader-2" style="font-size:20px;display:block;margin-bottom:6px;animation:spin 1s linear infinite" aria-hidden="true"></i>
+    Generating plan...
+  </div>
+
+  <div id="rec-output"></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const S={
+  sets:[],
+  foods:[],
+  prs:{},
+  workoutType:'Push',
+  goal:'strength',
+  calGoal:2500,
+  selectedFood:null
+};
+
+const FOOD_DB=[
+  {name:'Chicken breast (100g)',cal:165,p:31,c:0,f:3.6},
+  {name:'Eggs, whole (1 large)',cal:72,p:6,c:0.4,f:5},
+  {name:'Egg whites (100g)',cal:52,p:11,c:0.7,f:0.2},
+  {name:'Brown rice, cooked (100g)',cal:111,p:2.6,c:23,f:0.9},
+  {name:'White rice, cooked (100g)',cal:130,p:2.7,c:28,f:0.3},
+  {name:'Oats, dry (100g)',cal:389,p:17,c:66,f:7},
+  {name:'Salmon (100g)',cal:208,p:20,c:0,f:13},
+  {name:'Tuna, canned (100g)',cal:116,p:26,c:0,f:1},
+  {name:'Greek yogurt, plain (100g)',cal:59,p:10,c:3.6,f:0.4},
+  {name:'Cottage cheese (100g)',cal:98,p:11,c:3.4,f:4.3},
+  {name:'Whey protein (30g scoop)',cal:120,p:25,c:3,f:2},
+  {name:'Banana (medium)',cal:105,p:1.3,c:27,f:0.4},
+  {name:'Sweet potato (100g)',cal:86,p:1.6,c:20,f:0.1},
+  {name:'Broccoli (100g)',cal:34,p:2.8,c:7,f:0.4},
+  {name:'Avocado (100g)',cal:160,p:2,c:9,f:15},
+  {name:'Peanut butter (2 tbsp)',cal:188,p:8,c:6,f:16},
+  {name:'Almonds (30g)',cal:174,p:6,c:6,f:15},
+  {name:'Pasta, cooked (100g)',cal:131,p:5,c:25,f:1.1},
+  {name:'Beef, lean (100g)',cal:215,p:26,c:0,f:12},
+  {name:'Milk, whole (100ml)',cal:61,p:3.2,c:4.8,f:3.3},
+  {name:'Bread, whole wheat (1 slice)',cal:81,p:4,c:14,f:1.1},
+  {name:'Spinach (100g)',cal:23,p:2.9,c:3.6,f:0.4},
+  {name:'Lentils, cooked (100g)',cal:116,p:9,c:20,f:0.4},
+  {name:'Quinoa, cooked (100g)',cal:120,p:4.4,c:22,f:1.9},
+  {name:'Beef steak (100g)',cal:271,p:24,c:0,f:19},
+];
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelector(`[data-page="${p}"]`).classList.add('active');
+  if(p==='progress'){renderProgressChart();renderVolChart();renderMacroChart();}
+  if(p==='food'){updateGoal();}
+}
+
+function selectType(el,type){
+  document.querySelectorAll('#workout-type-chips .workout-chip').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected');
+  S.workoutType=type;
+}
+
+function onLiftChange(){}
+
+function logSet(){
+  const lift=document.getElementById('lift-select').value;
+  const w=parseFloat(document.getElementById('weight-in').value)||0;
+  const r=parseInt(document.getElementById('reps-in').value)||0;
+  const sets=parseInt(document.getElementById('sets-in').value)||1;
+  if(!r){alert('Enter reps');return;}
+  const unit=document.getElementById('unit-select').value;
+  const now=new Date();
+  for(let i=0;i<sets;i++){
+    S.sets.push({lift,w,r,unit,type:S.workoutType,date:now.toISOString(),ts:now.getTime()});
+  }
+  if(w>0){
+    const key=lift;
+    if(!S.prs[key]||w>S.prs[key].w){S.prs[key]={w,r,unit,date:now.toLocaleDateString()};renderPRs();}
+  }
+  renderTodaySets();
+  updateProgressLiftSelect();
+}
+
+function renderTodaySets(){
+  const today=new Date().toDateString();
+  const todaySets=S.sets.filter(s=>new Date(s.ts).toDateString()===today);
+  const el=document.getElementById('today-sets');
+  document.getElementById('today-count').textContent=todaySets.length+' sets';
+  if(!todaySets.length){el.innerHTML='<div class="empty"><i class="ti ti-dumbbell" style="font-size:24px;display:block;margin-bottom:6px"></i>No sets logged yet</div>';return;}
+  const grouped={};
+  todaySets.forEach(s=>{if(!grouped[s.lift])grouped[s.lift]=[];grouped[s.lift].push(s);});
+  el.innerHTML=Object.entries(grouped).map(([lift,sets])=>`
+    <div class="lift-row">
+      <div style="flex:1"><div class="lift-name">${lift}</div>
+      <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">${sets.map((s,i)=>`<div class="set-log"><div class="set-badge">${i+1}</div><span style="font-size:13px">${s.w?s.w+s.unit+' × ':''}<b>${s.r}</b></span></div>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderPRs(){
+  const el=document.getElementById('pr-list');
+  const prs=Object.entries(S.prs);
+  if(!prs.length){el.innerHTML='<div class="empty">Log lifts to see your PRs</div>';return;}
+  el.innerHTML=prs.map(([lift,pr])=>`
+    <div class="lift-row"><div class="lift-name">${lift} <span class="pr-badge">PR</span></div>
+    <div style="font-size:13px;font-weight:500">${pr.w}${pr.unit} × ${pr.r}</div>
+    <div class="lift-meta" style="margin-left:4px">${pr.date}</div></div>`).join('');
+}
+
+function clearToday(){
+  const today=new Date().toDateString();
+  S.sets=S.sets.filter(s=>new Date(s.ts).toDateString()!==today);
+  renderTodaySets();
+}
+
+function updateGoal(){
+  const phase=document.getElementById('goal-phase').value;
+  const bw=parseFloat(document.getElementById('bw-input').value)||75;
+  const tips={maintain:`Maintain: ~${Math.round(bw*33)} kcal/day. Protein: ${Math.round(bw*1.8)}g for muscle preservation.`,
+    bulk:`Bulk: ~${Math.round(bw*38)} kcal/day (+300-500 surplus). Protein: ${Math.round(bw*2)}g. Expect 0.25-0.5kg/week.`,
+    cut:`Cut: ~${Math.round(bw*28)} kcal/day (300-500 deficit). Protein: ${Math.round(bw*2.2)}g to preserve muscle.`};
+  document.getElementById('goal-tip').textContent=tips[phase];
+  const suggested={maintain:Math.round(bw*33),bulk:Math.round(bw*38),cut:Math.round(bw*28)};
+  document.getElementById('cal-goal-input').value=suggested[phase];
+  S.calGoal=suggested[phase];
+  updateMacroTotals();
+}
+
+function searchFood(q){
+  const dd=document.getElementById('food-dropdown');
+  if(!q){dd.style.display='none';return;}
+  const res=FOOD_DB.filter(f=>f.name.toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if(!res.length){dd.style.display='none';return;}
+  dd.style.display='block';
+  dd.innerHTML=res.map((f,i)=>`<div onclick="selectFoodItem(${FOOD_DB.indexOf(f)})" style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='var(--surface-1)'" onmouseout="this.style.background=''">${f.name}<span style="font-size:11px;color:var(--text-muted)">${f.cal}kcal</span></div>`).join('');
+}
+
+function selectFoodItem(idx){
+  S.selectedFood=FOOD_DB[idx];
+  document.getElementById('food-dropdown').style.display='none';
+  document.getElementById('food-search').value=S.selectedFood.name;
+  document.getElementById('selected-food-preview').style.display='block';
+  document.getElementById('sel-food-name').textContent=S.selectedFood.name;
+  document.getElementById('food-amount').value=100;
+  updatePreview();
+}
+
+function updatePreview(){
+  const f=S.selectedFood;if(!f)return;
+  const amt=parseFloat(document.getElementById('food-amount').value)||100;
+  const scale=amt/100;
+  document.getElementById('food-preview-macros').innerHTML=`
+    <span class="macro-pill macro-p">P: ${(f.p*scale).toFixed(1)}g</span>
+    <span class="macro-pill macro-c">C: ${(f.c*scale).toFixed(1)}g</span>
+    <span class="macro-pill macro-f">F: ${(f.f*scale).toFixed(1)}g</span>
+    <span style="font-size:12px;color:var(--text-muted);align-self:center">${Math.round(f.cal*scale)} kcal</span>`;
+}
+
+function addFood(){
+  const f=S.selectedFood;if(!f)return;
+  const amt=parseFloat(document.getElementById('food-amount').value)||100;
+  const meal=document.getElementById('meal-select').value;
+  const scale=amt/100;
+  S.foods.push({name:f.name,meal,amt,cal:Math.round(f.cal*scale),p:parseFloat((f.p*scale).toFixed(1)),c:parseFloat((f.c*scale).toFixed(1)),f:parseFloat((f.f*scale).toFixed(1)),ts:Date.now()});
+  document.getElementById('selected-food-preview').style.display='none';
+  document.getElementById('food-search').value='';
+  S.selectedFood=null;
+  renderFoodLog();
+  updateMacroTotals();
+}
+
+function renderFoodLog(){
+  const el=document.getElementById('food-log');
+  if(!S.foods.length){el.innerHTML='<div class="empty">No food logged today</div>';return;}
+  const meals=['Breakfast','Lunch','Dinner','Snack'];
+  const grouped={};
+  S.foods.forEach(f=>{if(!grouped[f.meal])grouped[f.meal]=[];grouped[f.meal].push(f);});
+  el.innerHTML=meals.filter(m=>grouped[m]).map(m=>`
+    <div style="margin-bottom:10px">
+      <div style="font-size:12px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">${m}</div>
+      ${grouped[m].map((f,i)=>`<div class="food-row">
+        <div class="food-name">${f.name}<br><span style="font-size:11px;color:var(--text-muted)">${f.amt}g · ${f.cal} kcal</span></div>
+        <div style="display:flex;gap:4px"><span class="macro-pill macro-p">${f.p}g P</span><span class="macro-pill macro-c">${f.c}g C</span><span class="macro-pill macro-f">${f.f}g F</span></div>
+        <button class="btn btn-sm" onclick="removeFood(${i},${JSON.stringify(m).replace(/"/g,"'")})" style="margin-left:4px"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div>`).join('')}
+    </div>`).join('');
+}
+
+function removeFood(idx,meal){
+  const mealFoods=S.foods.filter(f=>f.meal===meal);
+  const actual=mealFoods[idx];
+  S.foods=S.foods.filter(f=>f!==actual);
+  renderFoodLog();updateMacroTotals();
+}
+
+function updateMacroTotals(){
+  const tot=S.foods.reduce((a,f)=>({cal:a.cal+f.cal,p:a.p+f.p,c:a.c+f.c,f:a.f+f.f}),{cal:0,p:0,c:0,f:0});
+  document.getElementById('cal-total').textContent=Math.round(tot.cal);
+  document.getElementById('prot-total').textContent=Math.round(tot.p)+'g';
+  document.getElementById('carb-total').textContent=Math.round(tot.c)+'g';
+  const pct=Math.min(100,Math.round((tot.cal/S.calGoal)*100));
+  document.getElementById('cal-bar').style.width=pct+'%';
+  document.getElementById('cal-pct').textContent=pct+'%';
+}
+
+function updateProgressLiftSelect(){
+  const sel=document.getElementById('progress-lift-select');
+  const lifts=[...new Set(S.sets.map(s=>s.lift))];
+  const cur=sel.value;
+  sel.innerHTML=lifts.length?lifts.map(l=>`<option>${l}</option>`).join(''):'<option>No lifts yet</option>';
+  if(lifts.includes(cur))sel.value=cur;
+}
+
+let liftChartInst=null,volChartInst=null,macroChartInst=null;
+
+function renderProgressChart(){
+  const lift=document.getElementById('progress-lift-select').value;
+  const data=S.sets.filter(s=>s.lift===lift&&s.w>0).sort((a,b)=>a.ts-b.ts);
+  const labels=data.map(s=>new Date(s.ts).toLocaleDateString('en',{month:'short',day:'numeric'}));
+  const vals=data.map(s=>s.w);
+  if(vals.length){
+    const best=Math.max(...vals);
+    document.getElementById('prog-pr').textContent=best+(data[0]?.unit||'kg');
+    document.getElementById('prog-sessions').textContent=[...new Set(data.map(s=>new Date(s.ts).toDateString()))].length;
+    const trend=vals.length>1?vals[vals.length-1]-vals[0]:0;
+    document.getElementById('prog-trend').textContent=(trend>=0?'+':'')+trend.toFixed(1)+(data[0]?.unit||'kg');
+    document.getElementById('prog-trend').style.color=trend>=0?'#1baf7a':'#e24b4a';
+  }else{
+    document.getElementById('prog-pr').textContent='—';
+    document.getElementById('prog-sessions').textContent='—';
+    document.getElementById('prog-trend').textContent='—';
+  }
+  const ctx=document.getElementById('liftChart').getContext('2d');
+  if(liftChartInst)liftChartInst.destroy();
+  liftChartInst=new Chart(ctx,{type:'line',data:{labels:labels.length?labels:['No data'],datasets:[{label:'Weight',data:vals.length?vals:[0],borderColor:'#2a78d6',backgroundColor:'rgba(42,120,214,0.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#2a78d6',tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,grid:{color:'rgba(136,135,128,0.15)'},ticks:{color:'#898781',font:{size:11}}},x:{grid:{display:false},ticks:{color:'#898781',font:{size:11},maxRotation:0}}}}});
+}
+
+function renderVolChart(){
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const vols=days.map((_,i)=>{
+    const d=new Date();d.setDate(d.getDate()-d.getDay()+i+1);
+    const ds=d.toDateString();
+    return S.sets.filter(s=>new Date(s.ts).toDateString()===ds).reduce((a,s)=>a+(s.w*s.r||s.r),0);
+  });
+  const ctx=document.getElementById('volChart').getContext('2d');
+  if(volChartInst)volChartInst.destroy();
+  volChartInst=new Chart(ctx,{type:'bar',data:{labels:days,datasets:[{label:'Volume',data:vols,backgroundColor:'rgba(42,120,214,0.75)',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(136,135,128,0.15)'},ticks:{color:'#898781',font:{size:11}}},x:{grid:{display:false},ticks:{color:'#898781',font:{size:11}}}}}});
+}
+
+function renderMacroChart(){
+  const tot=S.foods.reduce((a,f)=>({p:a.p+f.p*4,c:a.c+f.c*4,f:a.f+f.f*9}),{p:0,c:0,f:0});
+  const total=tot.p+tot.c+tot.f||1;
+  const ctx=document.getElementById('macroChart').getContext('2d');
+  if(macroChartInst)macroChartInst.destroy();
+  macroChartInst=new Chart(ctx,{type:'doughnut',data:{labels:['Protein','Carbs','Fat'],datasets:[{data:[Math.round(tot.p/total*100),Math.round(tot.c/total*100),Math.round(tot.f/total*100)],backgroundColor:['#2a78d6','#1baf7a','#eda100'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}%`}}},cutout:'70%'}});
+}
+
+function selectGoal(el,goal){
+  document.querySelectorAll('#goal-chips .workout-chip').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected');
+  S.goal=goal;
+}
+
+const PLANS={
+  strength:{title:'Strength program',desc:'Focus: heavy compound lifts, 3–5 reps, long rest (3–5 min). Progressive overload is key.',days:[
+    {day:'Day 1 — Squat focus',lifts:['Squat 5×5','Romanian deadlift 3×8','Leg press 3×10','Calf raises 4×12']},
+    {day:'Day 2 — Bench focus',lifts:['Bench press 5×5','Overhead press 4×5','Incline DB press 3×8','Tricep dips 3×10']},
+    {day:'Day 3 — Deadlift focus',lifts:['Deadlift 5×3','Pull-ups 4×6','Barbell row 4×6','Face pulls 3×15']},
+    {day:'Day 4 — Accessory',lifts:['Front squat 3×5','Pause bench press 3×5','Weighted pull-ups 3×5','Core work 3×15']}
+  ]},
+  hypertrophy:{title:'Hypertrophy program',desc:'Focus: 8–12 reps, moderate weight, 60–90s rest. Volume is the driver of growth.',days:[
+    {day:'Day 1 — Chest & shoulders',lifts:['Bench press 4×10','Incline DB press 4×12','Cable fly 3×15','Overhead press 4×10','Lateral raises 4×15']},
+    {day:'Day 2 — Back & biceps',lifts:['Pull-ups 4×10','Barbell row 4×10','Lat pulldown 3×12','Cable row 3×12','Barbell curl 4×12']},
+    {day:'Day 3 — Legs',lifts:['Squat 4×10','Romanian deadlift 4×12','Leg press 3×15','Leg curl 3×12','Calf raises 5×15']},
+    {day:'Day 4 — Arms & core',lifts:['Skull crushers 4×12','Tricep pushdown 3×15','Hammer curl 4×12','Dumbbell curl 3×15','Planks 3×60s']}
+  ]},
+  'fat-loss':{title:'Fat loss program',desc:'Focus: high-rep circuits, HIIT finishers, 30–60s rest. Keep protein high to preserve muscle.',days:[
+    {day:'Day 1 — Upper circuit',lifts:['Push-ups 4×20','DB row 4×15','Overhead press 3×15','Cable fly 3×20','Tricep dips 3×15']},
+    {day:'Day 2 — HIIT cardio',lifts:['10 min warm-up','8 × 30s sprint / 90s walk','10 min cool-down','Core circuit 3×']},
+    {day:'Day 3 — Lower circuit',lifts:['Goblet squat 4×15','Romanian deadlift 3×15','Leg press 3×20','Step-ups 3×12/leg','Calf raises 4×20']},
+    {day:'Day 4 — Full body',lifts:['Deadlift 3×12','Bench press 3×12','Pull-ups 3×max','Squat 3×15','Plank circuit']}
+  ]},
+  endurance:{title:'Endurance program',desc:'Focus: high reps (15–20+), supersets, minimal rest (30–45s). Builds aerobic base alongside muscle.',days:[
+    {day:'Day 1 — Upper endurance',lifts:['Push-up superset 3×20','Pull-up superset 3×15','Circuit: lateral raise+front raise 4×','Band work 3×20']},
+    {day:'Day 2 — Cardio base',lifts:['30–40 min steady-state run','Rowing 20 min','Bike 20 min']},
+    {day:'Day 3 — Lower endurance',lifts:['Squat 4×20','Lunges 3×20/leg','Leg press 4×20','Calf circuit 5×20']},
+    {day:'Day 4 — Metabolic conditioning',lifts:['Kettlebell circuit 3×','Burpees 3×15','Mountain climbers 3×30','Jump rope 3×2min']}
+  ]},
+  athletic:{title:'Athletic performance program',desc:'Focus: power, speed, agility. Mix of strength, plyometrics, and conditioning.',days:[
+    {day:'Day 1 — Power lower',lifts:['Power clean 4×5','Jump squat 4×6','Squat 4×6','Box jumps 4×6','Sprint drills 10 min']},
+    {day:'Day 2 — Power upper',lifts:['Bench press 4×6','Bent-over row 4×6','Push press 4×6','Plyometric push-ups 3×10','Band pull-aparts 3×20']},
+    {day:'Day 3 — Conditioning',lifts:['Sled push 6×30m','Farmer carry 4×40m','Battle ropes 4×30s','Tire flips or KB swings 4×15']},
+    {day:'Day 4 — Strength base',lifts:['Deadlift 4×5','Pull-ups 4×8','Overhead press 4×6','Core anti-rotation 3×']}
+  ]}
+};
+
+function getRecommendations(){
+  const goal=S.goal;
+  const days=parseInt(document.getElementById('days-week').value);
+  const exp=document.getElementById('exp-level').value;
+  const plan=PLANS[goal];
+  const usedDays=plan.days.slice(0,days);
+  document.getElementById('rec-loading').style.display='none';
+  const nutTips={strength:`<b>Nutrition:</b> Eat at a slight surplus (200–400 kcal). Protein: 1.8–2.2g/kg. Focus on carbs pre/post workout.`,
+    hypertrophy:`<b>Nutrition:</b> Moderate surplus (300–500 kcal). Protein: 2–2.4g/kg. Spread protein across 4–5 meals.`,
+    'fat-loss':`<b>Nutrition:</b> 300–500 kcal deficit. Protein: 2.2–2.6g/kg (higher to spare muscle). Low-carb on rest days.`,
+    endurance:`<b>Nutrition:</b> Carb-focused fueling. 5–7g carb/kg/day. Protein: 1.4–1.6g/kg. Electrolyte balance key.`,
+    athletic:`<b>Nutrition:</b> Performance eating. Carbs pre-session, protein post-session. Creatine 3–5g/day is well-supported.`}[goal];
+  const expNote={Beginner:'As a beginner, add weight every session when you hit the top rep range.',Intermediate:'As an intermediate, add weight weekly and deload every 6–8 weeks.',Advanced:'As an advanced lifter, use periodization — heavy, medium, and light weeks.'}[exp];
+  document.getElementById('rec-output').innerHTML=`
+    <div class="card" style="margin-top:12px">
+      <h2>${plan.title}</h2>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">${plan.desc}</p>
+      ${usedDays.map(d=>`<div class="rec-card"><h3>${d.day}</h3><p>${d.lifts.join(' · ')}</p></div>`).join('')}
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>Nutrition guidance</h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6">${nutTips}</p>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>Progression tip</h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6">${expNote}</p>
+    </div>`;
+}
+
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#food-search')&&!e.target.closest('#food-dropdown')){
+    document.getElementById('food-dropdown').style.display='none';
+  }
+});
+
+const style=document.createElement('style');
+style.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+
+updateProgressLiftSelect();
+updateGoal();
+</script>
